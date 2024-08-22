@@ -5,8 +5,10 @@ from Bio.SeqRecord import SeqRecord
 from Bio import SeqIO
 import os
 
-def generate_sequences(n_sequences, output_folder, segment_lengths, segment_similarities):
-
+def generate_sequences(n_sequences, output_folder, segment_lengths, segment_similarities, seed=None):
+    if seed is not None:
+        random.seed(seed)
+    
     seq_counter = 0
     os.makedirs(output_folder, exist_ok=True)
 
@@ -15,10 +17,9 @@ def generate_sequences(n_sequences, output_folder, segment_lengths, segment_simi
             total_seq_length = seg_length * 10
             
             for seq_num in range(n_sequences):
-
                 seq_counter += 1
                 
-                # Step 1: Choose four positions between 20% and 80% of total length, multiples of seg_length
+                 # Step 1: Choose four positions between 20% and 80% of total length, multiples of seg_length
                 segment_positions = sorted(random.sample(range(int(0.0 * total_seq_length), int(1 * total_seq_length), seg_length), 4))
                 pos_a, pos_b, pos_c, pos_d = segment_positions
 
@@ -48,6 +49,7 @@ def generate_sequences(n_sequences, output_folder, segment_lengths, segment_simi
                 output_file = os.path.join(output_folder, f"seq{seq_counter}_mode{segment_order_mode}_{str(orientation_flags[0])+str(orientation_flags[1])}_sim{int(similarity*100)}_len{seg_length}.fa")
                 SeqIO.write(seq_record, output_file, "fasta")
 
+
 def mutate_sequence(sequence, similarity, reverse_complement_flag):
     sequence = Seq(sequence)
     if reverse_complement_flag:
@@ -69,7 +71,10 @@ if __name__ == "__main__":
     parser.add_argument("output_folder", type=str, help="Output folder to save the generated sequences.")
     parser.add_argument("--segment_lengths", type=int, nargs="+", default=[100, 500, 1000, 10000], help="List of segment lengths.")
     parser.add_argument("--segment_similarities", type=float, nargs="+", default=[0.9, 0.95, 0.99], help="List of segment similarities as percentages (e.g., 0.9, 0.95, 0.99).")
+    parser.add_argument("--seed", type=int, default=None, help="Seed for random number generator to ensure reproducibility.")
 
     args = parser.parse_args()
 
-    generate_sequences(args.n_sequences, args.output_folder, args.segment_lengths, args.segment_similarities)
+    generate_sequences(args.n_sequences, args.output_folder, args.segment_lengths, args.segment_similarities, args.seed)
+
+   
